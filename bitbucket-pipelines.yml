@@ -1,0 +1,33 @@
+# This is a sample build configuration for JavaScript.
+# Check our guides at https://confluence.atlassian.com/x/14UWN for more examples.
+# Only use spaces to indent your .yml configuration.
+# -----
+# You can specify a custom docker image from Docker Hub as your build environment.
+image: node:10.15.3
+
+pipelines:
+  
+  branches:
+    dev:
+       - step:
+           script:
+              - echo $SSH_PRIVATE_KEY_PRODUCTION > ~/.ssh/id_rsa.tmp
+              - base64 -d ~/.ssh/id_rsa.tmp > ~/.ssh/id_rsa
+              - chmod -R 600 ~/.ssh/id_rsa
+              - echo $STAGING_ENV > ~/.env.tmp
+              - base64 -d ~/.env.tmp > ~/.env
+            #   - scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ~/.env ubuntu@$IP_ADDRESS:/var/www/chatbot/.env
+              - chmod -R 600 ~/.ssh/id_rsa
+              - ssh -o StrictHostKeyChecking=no ubuntu@$IP_ADDRESS_PRODUCTION "cd /var/www/chatbot && git pull -f origin dev && npm install && pm2 restart parse-apps.config.js && exit"
+
+   #  master:
+   #     - step:
+   #         script:
+   #            - echo $SSH_PRIVATE_KEY_PRODUCTION > ~/.ssh/id_rsa.tmp
+   #            - base64 -d ~/.ssh/id_rsa.tmp > ~/.ssh/id_rsa
+   #            - chmod -R 600 ~/.ssh/id_rsa
+   #            - echo $PRODUCTION_ENV > ~/.env.tmp
+   #            - base64 -d ~/.env.tmp > ~/.env
+   #            - scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ~/.env ubuntu@$IP_ADDRESS_PRODUCTION:/var/www/chatbot/.env
+   #            - chmod 600 ~/.ssh/id_rsa
+   #            - ssh -o StrictHostKeyChecking=no ubuntu@$IP_ADDRESS_PRODUCTION "cd /var/www/chatbot && git pull -f origin master && npm install && pm2 restart parse-apps.config.js && exit"
