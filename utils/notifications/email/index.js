@@ -1,6 +1,6 @@
 import nodemailer from 'nodemailer';
 
- const EmailNotification = async (email, subject="Notification from Dochase Bot", htmlBody) => {
+ const EmailNotification = async (email, subject="Notification from Trove", htmlBody) => {
 
   const transporter = nodemailer.createTransport({
     host: process.env.APP_EMAIL_HOST,
@@ -17,7 +17,7 @@ import nodemailer from 'nodemailer';
   });
 
   const mailOptions = {
-    from: `Dochase <${process.env.APP_EMAIL}>`,
+    from: `Trove <${process.env.APP_EMAIL}>`,
     to: Array.isArray(email) && email.length > 1 ? '' : email,
     subject: subject,
     html: htmlBody,

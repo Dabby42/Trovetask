@@ -22,28 +22,20 @@ const UserSchema = new mongoose.Schema({
     type: String,
     required: [true, 'Please add a country'],
   },
-  role: {
-    type: String,
-    enum: ['admin', 'user', 'agent'],
-    default: 'user',
-  },
   password: {
     type: String,
     required: [true, 'Please add a password'],
     minlength: 6,
     select: false,
   },
+  loanAmount:{
+    type: String
+  },
   resetPasswordToken: {
     data: String,
     default: ''
   },
   resetPasswordExpire: Date,
-  accountId: { type: String },
-  accountToken: { type: String },
-  mainAccount: { 
-    type:  mongoose.Schema.Types.ObjectId,
-    ref: 'User'
-  },
   createdAt: {
     type: Date,
     default: Date.now,
@@ -81,7 +73,6 @@ UserSchema.methods.response = function () {
     lastName: this.lastName,
     email: this.email,
     country: this.country,
-    role: this.role,
     createdAt: this.createdAt
   }
   return userData;

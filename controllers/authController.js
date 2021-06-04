@@ -4,22 +4,10 @@ import nodemailer from 'nodemailer';
 import asyncHandler from '../middleware/asyncHandler';
 import ErrorResponse from '../utils/errorResponseClass';
 import User from '../models/User';
-import { client } from '../config/twilio';
-const { verify } = pkg;
+import EmailNotification from '../utils/notifications/email';
+import { resetPasswordTemplate } from '../utils/notifications/email/templates';
 
-const transporter = nodemailer.createTransport({
-  host: process.env.APP_EMAIL_HOST,
-  port: process.env.APP_EMAIL_PORT,
-  secure: true,
-  auth: {
-    type: 'OAuth2',
-    user: process.env.APP_EMAIL,
-    clientId: process.env.APP_EMAIL_CLIENT_ID,
-    clientSecret: process.env.APP_EMAIL_CLIENT_SECRET,
-    refreshToken: process.env.APP_REFRESH_TOKEN,
-    accessToken: process.env.APP_ACCESS_TOKEN
-  }
-})
+const { verify } = pkg;
 
 //@desc     Register User
 //@route    POST /api/v1/auth/register
@@ -37,14 +25,6 @@ export const register = asyncHandler(async (req, res) => {
 
   await user.save();
 
-  const subaccount = await client.api
-    .accounts
-    .create({friendlyName: `${firstName} ${lastName}`});
-  
-  user.accountId = subaccount.sid;
-  user.accountToken = subaccount.authToken;
-
-  await user.save();
   const token = await user.getSignedJwtToken();
 
   return res.status(201).json({
@@ -89,8 +69,7 @@ export const login = asyncHandler(async (req, res, next) => {
 //@route    GET /api/v1/auth/me
 //@access   Private
 export const getMe = asyncHandler(async (req, res, next) => {
-  console.log(req.user.id);
-  const user = await User.findById(req.user.id);
+  const user = await User.findById({_id: req.user._id});
 
   res.status(200).json({
     success: true,
@@ -117,15 +96,8 @@ export const forgotPassword = asyncHandler(async (req, res, next) => {
   
   //Generate token for user
   const token = user.getSignedJwtToken();
-  const data = {
-    from: process.env.APP_EMAIL,
-    to: email, 
-    subject: "Reset Password Link",
-    html: `
-      <h2>Please click on the given link to reset your password</h2>
-      <p>${process.env.CLIENT_URL}/resetpassword/${token}</p>
-    `
-  }
+  const htmlBody = resetPasswordTemplate({ name: user.firstName, token});
+  const subject = 'Reset Your Password'
 
   //Update user reset password property
   const resetPasswordToken = await User.updateOne({resetPasswordToken: token});
@@ -135,7 +107,7 @@ export const forgotPassword = asyncHandler(async (req, res, next) => {
   }
   
   //Send reset link as a mail to user
-  await transporter.sendMail(data);
+  EmailNotification(email, subject, htmlBody);
 
   return res.status(200).json({
     success: true,

@@ -1,42 +1,68 @@
-import cryptoRandomString from 'crypto-random-string';
 import asyncHandler from '../middleware/asyncHandler';
 import User from '../models/User';
-import EmailNotification from '../utils/notifications/email';
-import { resetPasswordTemplate } from '../utils/notifications/email/templates';
+
+/**
+ * @desc   Update a User
+ * @route  PATCH /api/v1/users/:userId
+ * @access Private
+ */
+ export const updateUser = asyncHandler(async (req, res) => {
+  const { userId } = req.params;
+  const { firstName, lastName, email, phoneNumber, country } = req.body;
+  const payload = {
+    ...(firstName && { firstName }),
+    ...(lastName && { lastName }),
+    ...(email && { email }),
+    ...(phoneNumber && { phoneNumber }),
+    ...(country && { country })
+  }
+
+  const user = await User.findByIdAndUpdate(
+    userId,
+    payload,
+    { new: true }
+  )
+
+  return res.status(200).json({
+    status: 200,
+    success: true,
+    data: user,
+    message: 'User updated successfully'
+  })
+});
 
 
 /**
- * @desc   Create an Agent
- * @route  POST /api/v1/users/agent
+ * @desc   Get Users
+ * @route  GET /api/v1/users
  * @access Private
  */
-export const createAgent = asyncHandler(async (req, res) => {
-  const { _id } = req.user;
-  const { firstName, lastName, email, country } = req.body;
-  const password = cryptoRandomString({length: 10, type: 'alphanumeric'});
+ export const getAllUsers = asyncHandler(async (req, res) => {
 
-  const user = new User({
-    firstName,
-    lastName,
-    email,
-    password,
-    country,
-    role: 'agent',
-    mainAccount: _id
-  });
+  const users = await User.find();
 
-  await user.save();
-  const token = user.getSignedJwtToken();
-
-  const htmlBody = resetPasswordTemplate({ name: firstName, token});
-  const subject = 'New Account: Set Your Password'
-  EmailNotification(email, subject, htmlBody);
-
-  return res.status(201).json({
-    status: 201,
+  return res.status(200).json({
+    status: 200,
     success: true,
-    data: user.response(),
-    message: 'Agent created successfully'
+    data: users,
+    message: 'Users was fetched successfully'
+  })
+});
+
+/**
+ * @desc   Delete a user
+ * @route  DELETE /api/v1/users/:userId
+ * @access Private
+ */
+export const deleteUser = asyncHandler(async (req, res) => {
+  const { userId } = req.params;
+
+  await User.findByIdAndDelete(userId)
+
+  return res.status(200).json({
+    status: 200,
+    success: true,
+    message: 'User deleted successfully'
   })
 });
 

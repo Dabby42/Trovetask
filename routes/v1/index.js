@@ -1,22 +1,17 @@
 import express from 'express';
 import AuthRoute from './auth';
-import conversations from './conversations';
-import notifications from './notifications';
 import users from './users';
-import contacts from './contacts';
-import rooms from './rooms';
-import contactGroups from './contactGroups';
-import reports from './reports';
-
+import portfolio from './portfolio';
+import borrower from './borrower';
+import payment from './payment';
+import portfolioValue from './portfolioValue';
 const router = express.Router();
 
 router.use('/auth', AuthRoute);
-router.use('/conversations', conversations);
 router.use('/users', users);
-router.use('/rooms', rooms);
-router.use('/notifications', notifications);
-router.use('/contacts', contacts);
-router.use('/contactgroups', contactGroups);
-router.use('/reports', reports);
+router.use('/payment', payment);
+router.use('/borrow', borrower);
+router.use('/portfolio', portfolio);
+router.use('/portfolioValue', portfolioValue);
 
 export default router;
